@@ -17,7 +17,7 @@ from flask import Flask
 # CONFIGURATION
 # ==============================
 BOT_TOKEN = "8969651007:AAHOE3jQNIjZKefk51rJg4yCz6WPPYYP4t4"
-ADMIN_ID = 7942994648
+ADMIN_ID = 8781048151
 DB_NAME = "taskbot.db"
 
 # গুগল শিটের ওয়েব অ্যাপ ইউআরএল (প্রয়ोजन হলে বসাবেন)
