@@ -1,5 +1,4 @@
-
-    import os
+import os
 import time
 import threading
 import sqlite3
@@ -20,7 +19,7 @@ BOT_TOKEN = "8969651007:AAHOE3jQNIjZKefk51rJg4yCz6WPPYYP4t4"
 ADMIN_ID = 8781048151
 DB_NAME = "taskbot.db"
 
-# গুগল শিটের ওয়েব অ্যাপ ইউআরএল (প্রয়ोजन হলে বসাবেন)
+# গুগল শিটের ওয়েব অ্যাপ ইউআরএল (প্রয়োজন হলে বসাবেন)
 GOOGLE_SHEET_URL = "আপনার_ওয়েব_অ্যাপ_লিংকটি_এখানে_বসান"
 
 # ফেসবুক ও ইনস্টাগ্রামের পাসওয়ার্ড প্রিফিক্স
