@@ -1,4 +1,5 @@
-import os
+
+    import os
 import time
 import threading
 import sqlite3
@@ -19,7 +20,7 @@ BOT_TOKEN = "8969651007:AAHOE3jQNIjZKefk51rJg4yCz6WPPYYP4t4"
 ADMIN_ID = 7942994648
 DB_NAME = "taskbot.db"
 
-# গুগল শিটের ওয়েব অ্যাপ ইউআরএল এখানে বসাবেন (প্রয়োজন হলে)
+# গুগল শিটের ওয়েব অ্যাপ ইউআরএল (প্রয়ोजन হলে বসাবেন)
 GOOGLE_SHEET_URL = "আপনার_ওয়েব_অ্যাপ_লিংকটি_এখানে_বসান"
 
 # ফেসবুক ও ইনস্টাগ্রামের পাসওয়ার্ড প্রিফিক্স
@@ -72,11 +73,13 @@ def run_flask():
 # ==============================
 # KEYBOARDS
 # ==============================
-def main_reply_keyboard():
+def main_reply_keyboard(user_id):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.row("📖কাজ ▸", "ব্যালেন্স💰")
     markup.row("📥টাকা উত্তোলন", "My Referrals🎁")
     markup.row("আমি নতুন🥰", "সাপোর্ট📞")
+    if user_id == ADMIN_ID:
+        markup.row("👑 Admin Panel")
     return markup
 
 def task_reply_keyboard():
@@ -198,7 +201,7 @@ def start_cmd(message):
     bot.send_message(
         message.chat.id,
         f"<b>🤖 PREMIUM TASK & WORK BOT</b>\n\nস্বাগতম <b>{message.from_user.first_name}</b>!\nনিচের মেনু থেকে আপনার কাঙ্ক্ষিত অপশন বেছে নিন।",
-        reply_markup=main_reply_keyboard()
+        reply_markup=main_reply_keyboard(message.from_user.id)
     )
 
 # ==============================
@@ -227,7 +230,7 @@ def handle_text_inputs(message):
                 pass
 
         admin_states[ADMIN_ID] = "none"
-        bot.send_message(chat_id, f"✅ <b>ব্রডকাস্ট সফল!</b> মোট {success_count} জন ইউজারের কাছে মেসেজ পাঠানো হয়েছে।", reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, f"✅ <b>ব্রডকাস্ট সফল!</b> মোট {success_count} জন ইউজারের কাছে মেসেজ পাঠানো হয়েছে।", reply_markup=main_reply_keyboard(user_id))
         return
 
     if text == "❌ বাতিল" or text == "⬅️ ফিরে যান":
@@ -236,7 +239,21 @@ def handle_text_inputs(message):
             del user_states[user_id]
         if user_id == ADMIN_ID:
             admin_states[ADMIN_ID] = "none"
-        bot.send_message(chat_id, "❌ মূল মেনুতে ফিরে এসেছেন।", reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, "❌ মূল মেনুতে ফিরে এসেছেন।", reply_markup=main_reply_keyboard(user_id))
+        return
+
+    if user_id == ADMIN_ID and text == "👑 Admin Panel":
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            types.InlineKeyboardButton("📂 টাস্ক ফাইল আপলোড", callback_data="upload_task_file"),
+            types.InlineKeyboardButton("📊 স্ট্যাটিস্টিক্স", callback_data="show_stats"),
+            types.InlineKeyboardButton("📢 ব্রডকাস্ট মেসেজ", callback_data="broadcast_msg")
+        )
+        bot.send_message(
+            chat_id, 
+            "👑 <b>অ্যাডমিন প্যানেল</b>\n\nনিচের অপশনগুলো থেকে আপনার প্রয়োজনীয় কাজ সিলেক্ট করুন:", 
+            reply_markup=markup
+        )
         return
 
     if user_id in user_states and "step" in user_states[user_id]:
@@ -340,7 +357,7 @@ def handle_text_inputs(message):
             bot.send_message(
                 chat_id,
                 f"⏳ <b>আপনার উইথড্র রিকুয়েস্টটি পেন্ডিংয়ে রয়েছে!</b>\n\n💳 মাধ্যম: {method}\n💰 পরিমাণ: {amount} BDT\n⛽ ফি কেটে পাবেন: {net_amount} BDT",
-                reply_markup=main_reply_keyboard()
+                reply_markup=main_reply_keyboard(user_id)
             )
             
             bot.send_message(
@@ -409,7 +426,7 @@ def handle_text_inputs(message):
 ✅ <b>সম্পন্ন কাজ:</b> {success_tasks} টি
 ⏳ <b>রিভিউতে আছে:</b> {pending_tasks} টি
 """
-        bot.send_message(chat_id, msg, reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, msg, reply_markup=main_reply_keyboard(user_id))
 
     elif text == "📥টাকা উত্তোলন":
         user_states[user_id] = {"step": "select_withdraw_method"}
@@ -421,7 +438,7 @@ def handle_text_inputs(message):
             user_states[user_id]["step"] = "withdraw_address"
             bot.send_message(chat_id, f"💸 আপনি সিলেক্ট করেছেন: <b>{text}</b>\n\n📍 <b>আপনার সঠিক USDT (BEP20) অ্যাড্রেসটি এখানে প্রদান করুন:</b>", reply_markup=withdraw_method_keyboard())
         else:
-            bot.send_message(chat_id, "দয়া করে নিচের মেনু থেকে সঠিক অপশনটি বেছে নিন:", reply_markup=main_reply_keyboard())
+            bot.send_message(chat_id, "দয়া করে নিচের মেনু থেকে সঠিক অপশনটি বেছে নিন:", reply_markup=main_reply_keyboard(user_id))
 
     elif text == "My Referrals🎁":
         conn = sqlite3.connect(DB_NAME)
@@ -443,7 +460,7 @@ def handle_text_inputs(message):
 <code>{link}</code>
 
 ℹ️ আপনি আপনার প্রতিটি রেফারেলের সম্পূর্ণ করা কাজ থেকে আয়ের 10% কমিশন পাবেন।"""
-        bot.send_message(chat_id, msg, reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, msg, reply_markup=main_reply_keyboard(user_id))
 
     elif text == "সাপোর্ট📞":
         msg = """📞 <b>গ্রাহক সেবা কেন্দ্র</b>
@@ -457,10 +474,10 @@ def handle_text_inputs(message):
     elif text == "আমি নতুন🥰":
         new_user_msg = """👋 <b>স্বাগতম নতুন মেম্বার!</b>
 আমাদের এই বটের মাধ্যমে খুব সহজেই বিভিন্ন সোশ্যাল মিডিয়া টাস্ক সম্পন্ন করে আয় করতে পারবেন। কাজ শুরু করতে <b>📖কাজ ▸</b> অপশনে ক্লিক করুন।"""
-        bot.send_message(chat_id, new_user_msg, reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, new_user_msg, reply_markup=main_reply_keyboard(user_id))
 
     else:
-        bot.send_message(chat_id, "দয়া করে নিচের মেনু থেকে সঠিক অপশনটি বেছে নিন:", reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, "দয়া করে নিচের মেনু থেকে সঠিক অপশনটি বেছে নিন:", reply_markup=main_reply_keyboard(user_id))
 
 # ==============================
 # CALLBACK HANDLERS
@@ -531,7 +548,7 @@ def handle_callbacks(call):
         save_to_google_sheet("Instagram", user_id, u_data['username'], u_data['password'], u_data['secret'])
         delete_credentials_msg(chat_id, user_id)
         bot.answer_callback_query(call.id)
-        bot.send_message(chat_id, "🎉 <b>আপনার ইনস্টাگرام টাস্কটি সফলভাবে জমা নেওয়া হয়েছে!</b>", reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, "🎉 <b>আপনার ইনস্টাگرام টাস্কটি সফলভাবে জমা নেওয়া হয়েছে!</b>", reply_markup=main_reply_keyboard(user_id))
         if user_id in user_states:
             del user_states[user_id]
 
@@ -561,7 +578,7 @@ def handle_callbacks(call):
         save_to_google_sheet("Facebook", user_id, u_data.get('uid'), u_data['password'], u_data['cookie'])
         delete_credentials_msg(chat_id, user_id)
         bot.answer_callback_query(call.id)
-        bot.send_message(chat_id, "🎉 <b>ফেসবুক টাস্কটি সফলভাবে জমা নেওয়া হয়েছে!</b>", reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, "🎉 <b>ফেসবুক টাস্কটি সফলভাবে জমা নেওয়া হয়েছে!</b>", reply_markup=main_reply_keyboard(user_id))
         if user_id in user_states:
             del user_states[user_id]
 
@@ -570,7 +587,7 @@ def handle_callbacks(call):
         if user_id in user_states:
             del user_states[user_id]
         bot.answer_callback_query(call.id, "টাস্ক বাতিল করা হয়েছে।")
-        bot.send_message(chat_id, "❌ <b>টাস্কটি বাতিল করা হয়েছে।</b>", reply_markup=main_reply_keyboard())
+        bot.send_message(chat_id, "❌ <b>টাস্কটি বাতিল করা হয়েছে।</b>", reply_markup=main_reply_keyboard(user_id))
 
 # ==============================
 # DOCUMENT HANDLER (ADMIN TASK FILE PROCESSING)
